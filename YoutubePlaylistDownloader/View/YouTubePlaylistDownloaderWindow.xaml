@@ -1,0 +1,83 @@
+﻿<Window x:Class="YoutubePlaylistDownloader.View.YouTubePlaylistDownloaderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:YoutubePlaylistDownloader.View"
+        xmlns:uc="clr-namespace:YoutubePlaylistDownloader.View.UserControls"
+        xmlns:vm="clr-namespace:YoutubePlaylistDownloader.ViewModel"
+        xmlns:converters="clr-namespace:YoutubePlaylistDownloader.ViewModel.Converters"
+        mc:Ignorable="d"
+        Title="YouTube Playlist Downloader" Width="Auto" Height="Auto" SizeToContent="WidthAndHeight">
+    <Window.Resources>
+        <vm:YouTubePlaylistDownloaderVM x:Key="vm"/>
+        <converters:IntToVideosNumStringConverter x:Key="IntToVideosNumStringConverter"/>
+    </Window.Resources>
+    <Grid Height="500" Width="600" DataContext="{StaticResource vm}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.8*"/>
+            <RowDefinition Height="4.5*"/>
+            <RowDefinition Height="0.8*"/>
+        </Grid.RowDefinitions>
+        <Grid Margin="20 0" Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0"
+                     Height="30"
+                     FontSize="16"
+                     Text="{Binding SearchTextBoxString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center"/>
+            <Button Content="Search"
+                    Grid.Column="1"
+                    Command="{Binding SearchCommand}"
+                    CommandParameter="{Binding SearchTextBoxString}"
+                    Height="30"/>
+        </Grid>
+        <Grid Grid.Row="1"
+              Margin="20 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1.4*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="{Binding SelectedPlaylist.Title}" 
+                       Grid.Row="0"
+                       FontWeight="Bold"
+                       FontSize="16"/>
+                <Label Content="{Binding SelectedPlaylist.Author}" 
+                       Grid.Row="1"/>
+                <Label Content="{Binding SelectedPlaylist.NumOfVideos, Converter={StaticResource IntToVideosNumStringConverter}}"
+                       Grid.Row="0"
+                       Grid.Column="1"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Bottom"/>
+            </Grid>
+            <ListView Grid.Row="1"
+                      MaxHeight="300"
+                      ItemsSource="{Binding VideoDisplayExternals}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <uc:VideoDisplay VideoDisplayExternal="{Binding VideoDisplayExternal}"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+        <StackPanel Grid.Row="2" VerticalAlignment="Center">
+            <Button Content="Download"
+                    Width="100"
+                    Height="40"
+                    Command="{Binding DownloadCommand}"
+                    CommandParameter="{Binding SelectedVideos}"/>
+        </StackPanel>
+    </Grid>
+</Window>
