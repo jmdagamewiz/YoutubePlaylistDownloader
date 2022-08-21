@@ -20,14 +20,9 @@ namespace YoutubePlaylistDownloader.ViewModel.Commands
 
         public bool CanExecute(object? parameter)
         {
-            // parse URL and check for correct format (if playlist or nah)
-            // TODO: continue this laturr
             string SearchText = parameter as string;
 
-            if (string.IsNullOrEmpty(SearchText))
-                return false;
-
-            if (!YouTubeHelper.IsPlaylistLinkValid(SearchText))
+            if (!YouTubeHelper.IsLinkAPlaylist(SearchText))
                 return false;
 
             return true;

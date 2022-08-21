@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using YoutubePlaylistDownloader.Model;
 
 namespace YoutubePlaylistDownloader.ViewModel.Commands
 {
-    public class UpdateSelectedVideosCommand : ICommand
+    public class ChangeDownloadLocationCommand : ICommand
     {
         public YouTubePlaylistDownloaderVM VM { get; set; }
 
@@ -25,21 +24,10 @@ namespace YoutubePlaylistDownloader.ViewModel.Commands
 
         public void Execute(object? parameter)
         {
-            var values = parameter as object[];
-            Video video = (Video)values[0];
-            bool isChecked = (bool)values[1];
-            
-            if (isChecked)
-            {
-                VM.AddVideoToSelectedVideos(video);
-            }
-            else
-            {
-                VM.RemoveVideoFromSelectedVideos(video);
-            }
+            VM.ChangeDownloadFolderLocation();
         }
 
-        public UpdateSelectedVideosCommand(YouTubePlaylistDownloaderVM vm)
+        public ChangeDownloadLocationCommand(YouTubePlaylistDownloaderVM vm)
         {
             VM = vm;
         }

@@ -21,32 +21,40 @@ namespace YoutubePlaylistDownloader.ViewModel.Helpers
             return SHGetKnownFolderPath(new("374DE290-123F-4565-9164-39C4925E467B"), 0);
         }
 
-        public static string CreatePlaylistFolder(string folderPath, Playlist playlist)
+        public static string CreatePlaylistFolder(string folderPath, string playlistTitle, string playlistAuthor)
         {
             // creates playlist folder inside specifiec parent folder
             string playlistFolderPath;
 
-            string temporaryPlaylistAuthor = playlist.Author;
-
-            if (playlist.Author == "")
-            {
-                temporaryPlaylistAuthor = "None";
-            }
-
-            if (playlist.Title.Contains("|"))
-                playlistFolderPath = System.IO.Path.Combine(folderPath,
-                    "[YPDA Playlist] " + playlist.Title.Replace("|", "-") + " - " + temporaryPlaylistAuthor);
-            else
-                playlistFolderPath = System.IO.Path.Combine(folderPath,
-                    "[YPDA Playlist] " + playlist.Title + " - " + temporaryPlaylistAuthor);
+            playlistFolderPath = System.IO.Path.Combine(folderPath, "[YPDA Playlist] " + playlistTitle + " - " + playlistAuthor);
 
             if (!System.IO.Directory.Exists(playlistFolderPath))
-            {
                 System.IO.Directory.CreateDirectory(playlistFolderPath);
-            }
-
+            
             return playlistFolderPath;
         }
+
+
+        public static bool IsNameValid(string fileName)
+        {
+            // if name doesn't contain invalid characters
+            if (fileName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) < 0)
+                return true;
+            else
+                return false;
+
+        }
+
+        public static string ToValidFileName(string fileName)
+        {
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c.ToString(), "");
+            }
+
+            return fileName;
+        }
+
     }
 
 }

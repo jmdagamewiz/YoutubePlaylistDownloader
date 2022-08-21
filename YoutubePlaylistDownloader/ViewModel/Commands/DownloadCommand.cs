@@ -21,15 +21,15 @@ namespace YoutubePlaylistDownloader.ViewModel.Commands
 
         public bool CanExecute(object? parameter)
         {
-            ObservableCollection<Video> selectedVideos = parameter as ObservableCollection<Video>;
+            ObservableCollection<VideoDisplayExternal> selectedVideoDisplayExternals = parameter as ObservableCollection<VideoDisplayExternal>;
 
-            if (selectedVideos == null)
+            if (selectedVideoDisplayExternals == null)
             {
                 return false;
             }
             else
             {
-                if (selectedVideos.Count > 0)
+                if (selectedVideoDisplayExternals.Count > 0)
                     return true;
                 else
                     return false;

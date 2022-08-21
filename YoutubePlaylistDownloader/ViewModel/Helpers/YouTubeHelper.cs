@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Common;
@@ -12,9 +13,9 @@ namespace YoutubePlaylistDownloader.ViewModel.Helpers
     public class YouTubeHelper
     {
 
-        public static bool IsPlaylistLinkValid(string Url)
+        public static bool IsLinkAPlaylist(string Url)
         {
-            // TODO: add functionality; to be used for SearchCommand.CanExecute()
+            // TODO: to be deprecated          
             return true;
         }
 
@@ -24,8 +25,7 @@ namespace YoutubePlaylistDownloader.ViewModel.Helpers
 
             var playlist = await youtube.Playlists.GetAsync(Url);
 
-            // TODO: assign NumOfVideos with correct detail
-
+            // NumOfVideos reassigned with correct value after this method
             Playlist playlistInfo = new Playlist()
             {
                 Url = playlist.Url,
@@ -39,7 +39,7 @@ namespace YoutubePlaylistDownloader.ViewModel.Helpers
             }
             else
             {
-                playlistInfo.Author = "";
+                playlistInfo.Author = "None";
             }
 
             return playlistInfo;

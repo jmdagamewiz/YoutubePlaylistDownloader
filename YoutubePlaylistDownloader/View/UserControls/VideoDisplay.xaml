@@ -14,6 +14,7 @@
         <converters:TimeSpanToDurationStringConverter x:Key="TimeSpanToDurationStringConverter"/>
         <converters:CheckboxPropertiesToParameterConverter x:Key="CheckboxPropertiesToParameterConverter"/>
     </UserControl.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="30"/>
@@ -24,15 +25,7 @@
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
                 IsChecked="{Binding IsCheckBoxChecked, Mode=TwoWay, 
-                            UpdateSourceTrigger=PropertyChanged}"
-                Command="{Binding DataContext.UpdateSelectedVideosCommand, 
-                            RelativeSource={RelativeSource AncestorType={x:Type ListView}}}">
-            <CheckBox.CommandParameter>
-                <MultiBinding Converter="{StaticResource CheckboxPropertiesToParameterConverter}">
-                    <Binding Path="Video"/>
-                    <Binding ElementName="VideoDisplayCheckBox" Path="IsChecked"/>
-                </MultiBinding>
-            </CheckBox.CommandParameter>
+                            UpdateSourceTrigger=PropertyChanged}">
         </CheckBox>
         <Image Grid.Column="1"
             Source="{Binding Video.ThumbnailUrl}"

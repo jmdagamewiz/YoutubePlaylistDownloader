@@ -10,6 +10,8 @@ using YoutubeExplode.Videos.Streams;
 using YoutubePlaylistDownloader.Model;
 using YoutubePlaylistDownloader.ViewModel.Commands;
 using YoutubePlaylistDownloader.ViewModel.Helpers;
+using Microsoft.WindowsAPICodePack.Dialogs;
+
 
 namespace YoutubePlaylistDownloader.ViewModel
 {
@@ -23,11 +25,8 @@ namespace YoutubePlaylistDownloader.ViewModel
         }
 
         public SearchCommand SearchCommand { get; set; }
-        public UpdateSelectedVideosCommand UpdateSelectedVideosCommand { get; set; }    
         public DownloadCommand DownloadCommand { get; set; }
-        public ObservableCollection<Video> Videos { get; set; }
-        public ObservableCollection<Video> SelectedVideos { get; set; }
-        public ObservableCollection<bool> CheckBoxesIsChecked { get; set; }
+        public ChangeDownloadLocationCommand ChangeDownloadFolderCommand { get; set; }
         public ObservableCollection<VideoDisplayExternal> VideoDisplayExternals { get; set; }
 
         private Playlist selectedPlaylist;
@@ -52,53 +51,76 @@ namespace YoutubePlaylistDownloader.ViewModel
                 OnPropertyChanged("SearchTextBoxString");
             }
         }
-            
-        public void AddVideoToSelectedVideos(Video video)
+
+        private string downloadFolderLocation;
+
+        public string DownloadFolderLocation
         {
-            SelectedVideos.Add(video);
+            get { return downloadFolderLocation; }
+            set
+            {
+                downloadFolderLocation = value;
+                OnPropertyChanged("DownloadFolderLocation");
+            }
         }
 
-        public void RemoveVideoFromSelectedVideos(Video video)
-        {
-            SelectedVideos.Remove(video);
-        }
 
         public async void SearchUrl()
         {
-            // clears information about previous query
             string InputUrl = SearchTextBoxString;
+
+            // clears information about previous query
             SearchTextBoxString = "";
-            Videos.Clear();
-            SelectedVideos.Clear();
+            VideoDisplayExternals.Clear();
             SelectedPlaylist = null;
 
-            Playlist newPlaylist = await YouTubeHelper.GetPlaylistInformation(InputUrl);
-            var videos = await YouTubeHelper.GetPlaylistVideos(InputUrl);
-
-            // updates NumOfVideos property
-            newPlaylist.NumOfVideos = videos.Count;
-            SelectedPlaylist = newPlaylist;
-
-            if (videos.Count > 0 || videos != null)
+            try
             {
-                foreach (Video video in videos)
-                {
-                    VideoDisplayExternals.Add(new VideoDisplayExternal()
-                    {
-                        IsCheckBoxChecked = true,
-                        Video = video
-                    });
+                // TODO : connect this to Error label thing
 
-                    SelectedVideos.Add(video);
+                Playlist newPlaylist = await YouTubeHelper.GetPlaylistInformation(InputUrl);
+
+                List<Video> searchedVideos = await YouTubeHelper.GetPlaylistVideos(InputUrl);
+
+                // updates NumOfVideos property
+                newPlaylist.NumOfVideos = searchedVideos.Count;
+                SelectedPlaylist = newPlaylist;
+
+                if (searchedVideos.Count > 0 || searchedVideos != null)
+                {
+
+                    foreach (Video video in searchedVideos)
+                    {
+                        VideoDisplayExternals.Add(new VideoDisplayExternal()
+                        {
+                            IsCheckBoxChecked = true,
+                            Video = video
+                        });
+                    }
                 }
+            }
+            catch (System.ArgumentException e)
+            {
+                
             }
         }
 
         public async void DownloadVideos()
         {
             // get user's Downloads folder and creates playlist folder in it
-            string folderPath = FileHelper.GetDownloadsFolderPath();
-            string playlistFolderPath = FileHelper.CreatePlaylistFolder(folderPath, SelectedPlaylist);
+            string folderPath = DownloadFolderLocation;
+
+            if (!FileHelper.IsNameValid(SelectedPlaylist.Title))
+            {
+                SelectedPlaylist.Title = FileHelper.ToValidFileName(SelectedPlaylist.Title);
+            }
+            
+            if (!FileHelper.IsNameValid(SelectedPlaylist.Author))
+            {
+                SelectedPlaylist.Author = FileHelper.ToValidFileName(SelectedPlaylist.Author);
+            }
+
+            string playlistFolderPath = FileHelper.CreatePlaylistFolder(folderPath, SelectedPlaylist.Title, SelectedPlaylist.Author);
 
             var youtube = new YoutubeClient();
 
@@ -112,9 +134,9 @@ namespace YoutubePlaylistDownloader.ViewModel
 
                 string fileName = $"{video.Title}.{streamInfo.Container}";
 
-                if (fileName.Contains("|"))
+                if (!FileHelper.IsNameValid(fileName))
                 {
-                    fileName = fileName.Replace("|", "-");
+                    fileName = FileHelper.ToValidFileName(fileName);
                 }
 
                 string downloadPath = System.IO.Path.Combine(playlistFolderPath, fileName);
@@ -124,16 +146,27 @@ namespace YoutubePlaylistDownloader.ViewModel
             }
         }
 
+        public void ChangeDownloadFolderLocation()
+        {
+            //TODO : add functionality
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.InitialDirectory = DownloadFolderLocation;
+            dialog.IsFolderPicker = true;
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                DownloadFolderLocation = dialog.FileName;
+            }
+        }
+
         public YouTubePlaylistDownloaderVM()
         {
-            UpdateSelectedVideosCommand = new UpdateSelectedVideosCommand(this);
             DownloadCommand = new DownloadCommand(this);
             SearchCommand = new SearchCommand(this);
+            ChangeDownloadFolderCommand = new ChangeDownloadLocationCommand(this);
 
-            Videos = new ObservableCollection<Video>();
-            SelectedVideos = new ObservableCollection<Video>();
-            CheckBoxesIsChecked = new ObservableCollection<bool>();
             VideoDisplayExternals = new ObservableCollection<VideoDisplayExternal>();
+
+            DownloadFolderLocation = FileHelper.GetDownloadsFolderPath();
 
             if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
             {
@@ -144,9 +177,13 @@ namespace YoutubePlaylistDownloader.ViewModel
                     Url = "https://www.youtube.com/watch?v=daZoiEGyFgg&list=PLJDRRt7pTG4GmNRZMZIsWzURi6OhdKmoh",
                     NumOfVideos = 22
                 };
-                Videos = new ObservableCollection<Video>()
+
+                VideoDisplayExternals = new ObservableCollection<VideoDisplayExternal>()
+                {
+                    new VideoDisplayExternal()
                     {
-                        new Video()
+                        IsCheckBoxChecked = true,
+                        Video = new Video()
                         {
                             Title = "Ben&Ben - Kathang Isip (Official Lyric Video) Other Text To Make Title Longer And Another Text To Make Title Even Longer",
                             Author = "SINDIKATO",
@@ -154,7 +191,9 @@ namespace YoutubePlaylistDownloader.ViewModel
                             ThumbnailUrl = "https://i.ytimg.com/vi/daZoiEGyFgg/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLA_MrKk46lbC62yJT6mJCp3NBi56A",
                             Duration = new TimeSpan(0, 5, 33)
                         }
-                    };
+                    }
+                };
+
             }
          
         }
