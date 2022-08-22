@@ -24,11 +24,27 @@
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0"
-                     Height="30"
-                     FontSize="16"
-                     Text="{Binding SearchTextBoxString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"/>
+            <Grid Grid.Column="0">
+                <TextBox Width="400" Height="30" VerticalAlignment="Center" 
+                         HorizontalAlignment="Left" x:Name="SearchTermTextBox" 
+                         FontSize="16" VerticalContentAlignment="Center"
+                         Padding="4,0,0,4"
+                         Text="{Binding SearchTextBoxString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock IsHitTestVisible="False" Text="Put YouTube Playlist URL here" 
+                           VerticalAlignment="Center" HorizontalAlignment="Left" 
+                           Margin="5,0,0,0" Foreground="DarkGray" FontSize="16">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchTermTextBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
             <Button Content="Search"
                     Grid.Column="1"
                     Command="{Binding SearchCommand}"
