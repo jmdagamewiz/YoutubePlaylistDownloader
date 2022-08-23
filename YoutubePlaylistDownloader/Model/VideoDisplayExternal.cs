@@ -10,5 +10,7 @@ namespace YoutubePlaylistDownloader.Model
     {
         public bool IsCheckBoxChecked { get; set; }
         public Video Video { get; set; }
+        public List<YoutubeExplode.Videos.Streams.MuxedStreamInfo> Streams { get; set; }
+        public YoutubeExplode.Videos.Streams.MuxedStreamInfo SelectedStream { get; set; }
     }
 }

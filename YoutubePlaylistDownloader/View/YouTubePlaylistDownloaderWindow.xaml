@@ -49,6 +49,7 @@
                     Grid.Column="1"
                     Command="{Binding SearchCommand}"
                     CommandParameter="{Binding SearchTextBoxString}"
+                    IsEnabled="{Binding IsNotSearching}"
                     Height="30"/>
         </Grid>
         <Grid Grid.Row="1"
@@ -105,7 +106,8 @@
                     Height="40"
                     VerticalAlignment="Center"
                     Command="{Binding DownloadCommand}"
-                    CommandParameter="{Binding VideoDisplayExternals}"/>
+                    CommandParameter="{Binding VideoDisplayExternals}"
+                    IsEnabled="{Binding IsNotDownloading}"/>
             <TextBlock Grid.Column="2"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"

@@ -64,20 +64,43 @@ namespace YoutubePlaylistDownloader.ViewModel
             }
         }
 
+        private bool isNotDownloading;
+
+        public bool IsNotDownloading
+        {   
+            get { return isNotDownloading; }
+            set
+            {
+                isNotDownloading = value;
+                OnPropertyChanged("IsNotDownloading");
+            }
+        }
+
+        private bool isNotSearching;
+
+        public bool IsNotSearching
+        {   
+            get { return isNotSearching; }
+            set
+            {
+                isNotSearching = value;
+                OnPropertyChanged("IsNotSearching");
+            }
+        }
 
         public async void SearchUrl()
         {
+            IsNotSearching = false;
+            IsNotDownloading = false;
+
             string InputUrl = SearchTextBoxString;
 
             // clears information about previous query
-            SearchTextBoxString = "";
             VideoDisplayExternals.Clear();
             SelectedPlaylist = null;
 
             try
             {
-                // TODO : connect this to Error label thing
-
                 Playlist newPlaylist = await YouTubeHelper.GetPlaylistInformation(InputUrl);
 
                 List<Video> searchedVideos = await YouTubeHelper.GetPlaylistVideos(InputUrl);
@@ -88,13 +111,20 @@ namespace YoutubePlaylistDownloader.ViewModel
 
                 if (searchedVideos.Count > 0 || searchedVideos != null)
                 {
+                    var youtube = new YoutubeClient();
 
                     foreach (Video video in searchedVideos)
                     {
+                        var streamInfoSet = await youtube.Videos.Streams.GetManifestAsync(video.Url);
+                        var streamInfo = streamInfoSet.GetMuxedStreams();
+                        var streamsList = streamInfo.ToList();
+
                         VideoDisplayExternals.Add(new VideoDisplayExternal()
                         {
                             IsCheckBoxChecked = true,
-                            Video = video
+                            Video = video,
+                            Streams = streamsList,
+                            SelectedStream = streamsList.Last()
                         });
                     }
                 }
@@ -103,10 +133,16 @@ namespace YoutubePlaylistDownloader.ViewModel
             {
                 
             }
+
+            IsNotSearching = true;
+            IsNotDownloading = true;
         }
 
         public async void DownloadVideos()
         {
+            IsNotDownloading = false;
+            IsNotSearching = false;
+
             // get user's Downloads folder and creates playlist folder in it
             string folderPath = DownloadFolderLocation;
 
@@ -126,29 +162,34 @@ namespace YoutubePlaylistDownloader.ViewModel
 
             foreach (VideoDisplayExternal videoDisplayExternal in VideoDisplayExternals)
             {
-                Video video = videoDisplayExternal.Video;
 
-                // get streams
-                var streamManifest = await youtube.Videos.Streams.GetManifestAsync(video.Url);
-                var streamInfo = streamManifest.GetMuxedStreams().GetWithHighestVideoQuality();
-
-                string fileName = $"{video.Title}.{streamInfo.Container}";
-
-                if (!FileHelper.IsNameValid(fileName))
+                if (videoDisplayExternal.IsCheckBoxChecked)
                 {
-                    fileName = FileHelper.ToValidFileName(fileName);
-                }
+                    Video video = videoDisplayExternal.Video;
 
-                string downloadPath = System.IO.Path.Combine(playlistFolderPath, fileName);
+                    // get stream selected in ComboBox
+                    var streamInfo = videoDisplayExternal.SelectedStream;
 
-                // download video
-                await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadPath);
+                    string fileName = $"{video.Title}.{streamInfo.Container}";
+
+                    if (!FileHelper.IsNameValid(fileName))
+                    {
+                        fileName = FileHelper.ToValidFileName(fileName);
+                    }
+
+                    string downloadPath = System.IO.Path.Combine(playlistFolderPath, fileName);
+
+                    // download video
+                    await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadPath);
+                } 
             }
+
+            IsNotDownloading = true;
+            IsNotSearching = true;
         }
 
         public void ChangeDownloadFolderLocation()
         {
-            //TODO : add functionality
             CommonOpenFileDialog dialog = new CommonOpenFileDialog();
             dialog.InitialDirectory = DownloadFolderLocation;
             dialog.IsFolderPicker = true;
@@ -167,6 +208,9 @@ namespace YoutubePlaylistDownloader.ViewModel
             VideoDisplayExternals = new ObservableCollection<VideoDisplayExternal>();
 
             DownloadFolderLocation = FileHelper.GetDownloadsFolderPath();
+
+            IsNotSearching = true;
+            IsNotDownloading = true;
 
             if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
             {
