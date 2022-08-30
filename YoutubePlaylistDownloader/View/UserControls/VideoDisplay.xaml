@@ -75,6 +75,9 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+            <ProgressBar Grid.Row="1"
+                         Margin="10"
+                         Value="{Binding DownloadProgress, Mode=OneWay}"/>
         </Grid>
     </Grid>
 </UserControl>

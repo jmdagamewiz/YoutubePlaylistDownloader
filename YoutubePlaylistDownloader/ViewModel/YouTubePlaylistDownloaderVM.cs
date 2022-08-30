@@ -11,7 +11,7 @@ using YoutubePlaylistDownloader.Model;
 using YoutubePlaylistDownloader.ViewModel.Commands;
 using YoutubePlaylistDownloader.ViewModel.Helpers;
 using Microsoft.WindowsAPICodePack.Dialogs;
-
+using System.Diagnostics;
 
 namespace YoutubePlaylistDownloader.ViewModel
 {
@@ -88,6 +88,19 @@ namespace YoutubePlaylistDownloader.ViewModel
             }
         }
 
+        private VideoDisplayExternal currentlyDownloadingVideoDisplayExternal;
+
+        public VideoDisplayExternal CurrentlyDownloadingVideoDisplayExternal
+        {   
+            get { return currentlyDownloadingVideoDisplayExternal; }
+            set
+            {
+                currentlyDownloadingVideoDisplayExternal = value;
+                OnPropertyChanged("CurrentlyDownloadingVideoDisplayExternal");
+            }
+        }
+
+
         public async void SearchUrl()
         {
             IsNotSearching = false;
@@ -124,12 +137,13 @@ namespace YoutubePlaylistDownloader.ViewModel
                             IsCheckBoxChecked = true,
                             Video = video,
                             Streams = streamsList,
-                            SelectedStream = streamsList.Last()
+                            SelectedStream = streamsList.Last(),
+                            DownloadProgress = 0
                         });
                     }
                 }
             }
-            catch (System.ArgumentException e)
+            catch
             {
                 
             }
@@ -158,11 +172,16 @@ namespace YoutubePlaylistDownloader.ViewModel
 
             string playlistFolderPath = FileHelper.CreatePlaylistFolder(folderPath, SelectedPlaylist.Title, SelectedPlaylist.Author);
 
-            var youtube = new YoutubeClient();
-
+            // erases previous ProgressBar values (if there are any)
             foreach (VideoDisplayExternal videoDisplayExternal in VideoDisplayExternals)
             {
+                videoDisplayExternal.DownloadProgress = 0;
+            }
 
+            // start downloading each video
+            var youtube = new YoutubeClient();
+            foreach (VideoDisplayExternal videoDisplayExternal in VideoDisplayExternals)
+            {
                 if (videoDisplayExternal.IsCheckBoxChecked)
                 {
                     Video video = videoDisplayExternal.Video;
@@ -178,14 +197,23 @@ namespace YoutubePlaylistDownloader.ViewModel
                     }
 
                     string downloadPath = System.IO.Path.Combine(playlistFolderPath, fileName);
+          
+                    CurrentlyDownloadingVideoDisplayExternal = videoDisplayExternal;
+                    var progressHandler = new Progress<double>(ShowDownloadProgress);
 
                     // download video
-                    await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadPath);
-                } 
+                    await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadPath, progressHandler);
+                    CurrentlyDownloadingVideoDisplayExternal = null;
+                }
             }
 
             IsNotDownloading = true;
             IsNotSearching = true;
+        }
+
+        private void ShowDownloadProgress(double ProgressValue)
+        {
+            CurrentlyDownloadingVideoDisplayExternal.DownloadProgress = ProgressValue * 100;
         }
 
         public void ChangeDownloadFolderLocation()
