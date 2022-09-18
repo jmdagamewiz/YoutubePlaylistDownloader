@@ -88,6 +88,19 @@ namespace YoutubePlaylistDownloader.ViewModel
             }
         }
 
+        private bool willDownloadInOrder;
+    
+        public bool WillDownloadInOrder
+        {
+            get { return willDownloadInOrder; }
+            set
+            {
+                willDownloadInOrder = value;
+                OnPropertyChanged(nameof(WillDownloadInOrder));
+            }
+        }
+
+
         private VideoDisplayExternal currentlyDownloadingVideoDisplayExternal;
 
         public VideoDisplayExternal CurrentlyDownloadingVideoDisplayExternal
@@ -160,6 +173,7 @@ namespace YoutubePlaylistDownloader.ViewModel
             // get user's Downloads folder and creates playlist folder in it
             string folderPath = DownloadFolderLocation;
 
+            // changes invalid playlist data to valid ones
             if (!FileHelper.IsNameValid(SelectedPlaylist.Title))
             {
                 SelectedPlaylist.Title = FileHelper.ToValidFileName(SelectedPlaylist.Title);
@@ -178,6 +192,7 @@ namespace YoutubePlaylistDownloader.ViewModel
                 videoDisplayExternal.DownloadProgress = 0;
             }
 
+            int videoDownloadedCounter = 1;
             // start downloading each video
             var youtube = new YoutubeClient();
             foreach (VideoDisplayExternal videoDisplayExternal in VideoDisplayExternals)
@@ -189,7 +204,16 @@ namespace YoutubePlaylistDownloader.ViewModel
                     // get stream selected in ComboBox
                     var streamInfo = videoDisplayExternal.SelectedStream;
 
-                    string fileName = $"{video.Title}.{streamInfo.Container}";
+                    string fileName = "";
+                    if (WillDownloadInOrder)
+                    {
+                        int padding = VideoDisplayExternals.Count.ToString().Length;
+                        fileName = $"{videoDownloadedCounter.ToString().PadLeft(padding, '0')} {video.Title}.{streamInfo.Container}";
+                    }
+                    else
+                    {
+                        fileName = $"{video.Title}.{streamInfo.Container}";
+                    }
 
                     if (!FileHelper.IsNameValid(fileName))
                     {
@@ -204,6 +228,8 @@ namespace YoutubePlaylistDownloader.ViewModel
                     // download video
                     await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadPath, progressHandler);
                     CurrentlyDownloadingVideoDisplayExternal = null;
+
+                    videoDownloadedCounter++;
                 }
             }
 

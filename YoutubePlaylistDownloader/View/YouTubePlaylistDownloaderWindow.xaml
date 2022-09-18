@@ -16,6 +16,7 @@
     <Grid Height="500" Width="600" DataContext="{StaticResource vm}">
         <Grid.RowDefinitions>
             <RowDefinition Height="0.8*"/>
+            <RowDefinition Height="0.4*"/>
             <RowDefinition Height="4.5*"/>
             <RowDefinition Height="0.8*"/>
         </Grid.RowDefinitions>
@@ -54,8 +55,20 @@
         </Grid>
         <Grid Grid.Row="1"
               Margin="20 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Content="Order when downloading"
+                      Grid.Column="0"
+                      IsChecked="{Binding WillDownloadInOrder, Mode=TwoWay, 
+                                UpdateSourceTrigger=PropertyChanged}"
+                      IsEnabled="{Binding IsNotDownloading}"
+                      VerticalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="2"
+              Margin="20 0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="56"/>
+                <RowDefinition Height="58"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
@@ -64,20 +77,21 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="13*"/>
+                    <ColumnDefinition Width="47*"/>
+                    <ColumnDefinition Width="20*"/>
                 </Grid.ColumnDefinitions>
-                <Label Content="{Binding SelectedPlaylist.Title}" 
+                <Label Content="{Binding SelectedPlaylist.Title}"
                        Grid.Row="0"
                        FontWeight="Bold"
-                       FontSize="16"/>
+                       FontSize="16" Grid.ColumnSpan="2" Margin="0,0,0,24" Grid.RowSpan="2"/>
                 <Label Content="{Binding SelectedPlaylist.Author}" 
-                       Grid.Row="1"/>
+                       Grid.Row="1" Grid.ColumnSpan="2"/>
                 <Label Content="{Binding SelectedPlaylist.NumOfVideos, Converter={StaticResource IntToVideosNumStringConverter}}"
                        Grid.Row="0"
-                       Grid.Column="1"
+                       Grid.Column="2"
                        HorizontalAlignment="Right"
-                       VerticalAlignment="Bottom"/>
+                       VerticalAlignment="Bottom" Margin="0,0,0,24" Grid.RowSpan="2"/>
             </Grid>
             <ListView Grid.Row="1"
                       MaxHeight="300"
@@ -89,7 +103,7 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="*"/>
